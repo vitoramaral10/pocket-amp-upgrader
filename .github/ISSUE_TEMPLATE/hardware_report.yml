@@ -1,0 +1,65 @@
+name: Hardware test report
+description: Tell us it worked (or not) on your computer and pedal. Successful reports matter too!
+title: "[Test] <system> - <result>"
+labels: [hardware-report]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every report helps decide when Windows and macOS can be called stable. Detection only (no update) is a useful report too.
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Windows, macOS, Linux]
+    validations:
+      required: true
+  - type: input
+    id: os_version
+    attributes:
+      label: System version and CPU
+      placeholder: e.g. macOS 15.1 on Apple M2, Windows 11 on x64
+    validations:
+      required: true
+  - type: input
+    id: app_version
+    attributes:
+      label: App version
+      placeholder: e.g. v0.1.0-beta.1
+    validations:
+      required: true
+  - type: dropdown
+    id: tested
+    attributes:
+      label: What did you test?
+      options:
+        - Detection only (the app showed my pedal)
+        - Full firmware update
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Firmware before and after
+      placeholder: e.g. 1.03 -> 1.05
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - Worked
+        - Worked after retrying / resuming
+        - Failed
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything unusual? Presets that changed? How long it took?
+  - type: textarea
+    id: log
+    attributes:
+      label: App log (optional)
+      description: Details -> Copy for a bug report.
+      render: text

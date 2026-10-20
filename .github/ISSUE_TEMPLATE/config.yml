@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/vitoramaral10/pocket-amp-upgrader/discussions
+    about: Ask questions, share tips and discuss support for other pedals.
+  - name: Pedal problems unrelated to this app
+    url: https://forum.m-vave.com/
+    about: For the pedal itself, presets or the official M-VAVE apps, the M-VAVE forum is the better place.

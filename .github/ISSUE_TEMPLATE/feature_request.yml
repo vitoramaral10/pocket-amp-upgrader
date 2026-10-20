@@ -1,0 +1,16 @@
+name: Feature request
+description: Suggest an improvement or support for another device.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      description: Describe the problem first, then the change you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: device
+    attributes:
+      label: Other device (if this is about supporting one)
+      description: Model, firmware version, and where the official firmware file can be downloaded.

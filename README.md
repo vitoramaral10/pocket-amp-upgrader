@@ -1,5 +1,11 @@
 # Pocket AMP Upgrader
 
+[![build](https://github.com/vitoramaral10/pocket-amp-upgrader/actions/workflows/build.yml/badge.svg)](https://github.com/vitoramaral10/pocket-amp-upgrader/actions/workflows/build.yml)
+[![release](https://img.shields.io/github/v/release/vitoramaral10/pocket-amp-upgrader?include_prereleases&sort=semver)](https://github.com/vitoramaral10/pocket-amp-upgrader/releases)
+[![downloads](https://img.shields.io/github/downloads/vitoramaral10/pocket-amp-upgrader/total)](https://github.com/vitoramaral10/pocket-amp-upgrader/releases)
+[![license](https://img.shields.io/github/license/vitoramaral10/pocket-amp-upgrader)](LICENSE)
+![platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-informational)
+
 Update the firmware of the **M-VAVE Pocket AMP** over USB from **Linux, Windows or macOS**, with the official firmware file from M-VAVE.
 
 M-VAVE's own updater runs only on Windows and, at the time of writing, its "POCKET AMP" bundle ships an older firmware than the one on the downloads page. This app sends the current `.fwsc` file from M-VAVE over plain USB-MIDI, so it needs no drivers.
@@ -50,7 +56,18 @@ Before anything is written, the app:
 | Windows | not yet tested on hardware | not yet tested on hardware |
 | macOS | not yet tested on hardware | not yet tested on hardware |
 
-Reports are very welcome: open an issue with the log from **Details → Copy for a bug report**.
+Reports are very welcome, including "it worked": use the [hardware test report](../../issues/new?template=hardware_report.yml) form.
+
+## Help wanted
+
+This is a community project and the next step depends on owners of the pedal:
+
+- **Windows and macOS testers.** Open the app with your pedal connected and [tell us what you see](../../issues/new?template=hardware_report.yml). Detection alone is already useful.
+- **Bug reports** with the log from **Details → Copy for a bug report** ([form](../../issues/new?template=bug_report.yml)).
+- **Questions, tips and other pedals** go to [Discussions](../../discussions).
+- **Code and docs**: see [CONTRIBUTING.md](CONTRIBUTING.md). Translations of this README are welcome.
+
+If the app helped you, a ⭐ makes it easier for other Pocket AMP owners to find it.
 
 ## Troubleshooting
 
@@ -80,6 +97,10 @@ flutter build linux     # or windows / macos, on that system
 ```
 
 `flutter test test_hardware/` talks to a real pedal on Linux (identity query only). Set `POCKET_AMP_FWSC=/path/to/Pocket\ AMP.fwsc` to also run the tests against the official package.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). Safety problems (a way to write wrong data to a pedal) go through [private reporting](SECURITY.md).
 
 ## License
 
