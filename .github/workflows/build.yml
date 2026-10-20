@@ -70,6 +70,11 @@ jobs:
         shell: pwsh
         run: |
           Rename-Item build/windows/x64/runner/Release pocket-amp-upgrader
+          # App-local Visual C++ runtime, so the app starts on machines without
+          # the redistributable installed.
+          foreach ($dll in 'msvcp140.dll','vcruntime140.dll','vcruntime140_1.dll') {
+            Copy-Item "$env:WINDIR\System32\$dll" build/windows/x64/runner/pocket-amp-upgrader/
+          }
           Compress-Archive -Path build/windows/x64/runner/pocket-amp-upgrader -DestinationPath ${{ matrix.artifact }}
 
       - name: Package (macOS)
