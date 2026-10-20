@@ -22,22 +22,31 @@ Get the build for your system from the [latest release](../../releases/latest):
 | --- | --- | --- |
 | Windows 10/11 (x64) | `pocket-amp-upgrader-windows-x64.zip` | Unzip, run `pocket-amp-upgrader.exe`. If SmartScreen warns, choose *More info → Run anyway*. |
 | macOS 11+ | `pocket-amp-upgrader-macos.zip` | Unzip, then right-click *Pocket AMP Upgrader* → *Open* (the app is not signed). |
-| Linux (x64) | `pocket-amp-upgrader-linux-x64.tar.gz` | `tar xzf` it and run `pocket-amp-upgrader/pocket-amp-upgrader`. Needs GTK 3 and ALSA (`libasound2`). |
+| Linux (x64) | `Pocket_AMP_Upgrader-x86_64.AppImage` | `chmod +x` it and run it. Or use `pocket-amp-upgrader-linux-x64.tar.gz`. Needs GTK 3 and ALSA (`libasound2`). |
 
 ## How to update
 
-1. **Back up your presets** with the M-VAVE app (or write them down). The V1.05 update was seen overwriting presets P01–P05 and P80 and resetting their EQ; the other presets, names and IRs stayed.
+1. Know that the update can change presets: V1.05 was seen overwriting P01–P05 and P80 and resetting their EQ (the other presets, names and IRs stayed). The app backs up all 80 presets and their EQ automatically before updating, and you can also save a backup to a file at any time.
 2. Charge the pedal, connect it with a USB **data** cable and turn it on.
 3. Close the M-VAVE app and anything else that uses MIDI (DAWs, browser tabs with Web MIDI).
 4. Open Pocket AMP Upgrader. It detects the pedal and shows the installed version.
 5. Click **Download from M-VAVE** (fetches the official file from M-VAVE's server) or **Open .fwsc file…** if you already have it.
 6. Click **Update firmware**, confirm, and wait about two minutes. The pedal restarts twice: once into update mode, once into the new firmware.
+7. Click **Restore my presets from before the update**. Only the presets and EQ that changed are written back, and the result is read back to check it.
 
 To check the installed version on the pedal itself, hold **Home** and press **>**.
+
+### "Already runs this version"
+
+The Pocket AMP does not reinstall the firmware it already has: it reads the package and stops. The app checks the version first and tells you instead of starting.
 
 ### If it stops halfway
 
 Do not unplug the pedal in a hurry. If the app says the pedal did not come back, reconnect it, open the app again and click **Detect pedal**. A pedal waiting in update mode shows up as *update mode*, and **Resume update** writes the firmware again from there.
+
+## Preset backups
+
+The **Presets** card saves all 80 presets and their EQ to a `.json` file and restores one. A restore writes only what differs from the pedal and then reads everything back to confirm. The backup taken automatically before each update is also kept in `Documents/Pocket AMP Upgrader`.
 
 ## Safety checks
 
@@ -46,13 +55,13 @@ Before anything is written, the app:
 - validates the whole `.fwsc` package (header, directory and CRC of every entry, chip `AC791N`);
 - only accepts packages for the Pocket AMP, and only the update loader (`ota.bin`) whose SHA-256 is known (`ef1f2db8…`, the one in the official V1.05 package);
 - checks that the pedal on the USB port says it is a Pocket AMP before arming the transfer;
-- sends nothing but the identity query until you confirm the update.
+- only asks the pedal for its identity when it opens; presets are read only when you start an update or save a backup, and nothing is written until you confirm.
 
 ## Status
 
 | Platform | Detection | Full update |
 | --- | --- | --- |
-| Linux | tested with a real pedal | the same protocol and timings were used to update a real pedal from V1.03 to V1.05 with a Python prototype; this app's update path is covered by tests against a simulated pedal |
+| Linux | tested with a real pedal; preset backup and restore too | the app's traffic was traced side by side with the Python prototype that updated a real pedal from V1.03 to V1.05: same requests, same answers. A full update by the app itself waits for the next firmware, because the pedal refuses to reinstall the version it already runs |
 | Windows | not yet tested on hardware | not yet tested on hardware |
 | macOS | not yet tested on hardware | not yet tested on hardware |
 
