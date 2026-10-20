@@ -64,7 +64,17 @@ class DetectedPedal {
   String get version => versionOf(identity);
 }
 
-enum UpdatePhase { preparing, loader, waitingLoader, flash, rebooting, done }
+/// [backup] is run by the app before [PedalUpdater.update]; the updater
+/// itself starts at [preparing].
+enum UpdatePhase {
+  backup,
+  preparing,
+  loader,
+  waitingLoader,
+  flash,
+  rebooting,
+  done,
+}
 
 class UpdateProgress {
   const UpdateProgress(this.phase, this.fraction);
@@ -79,6 +89,7 @@ class OtaLink {
   OtaLink(this._conn) {
     _sub = _conn.messages.listen(
       (Uint8List m) {
+        trace?.call('rx ${_hex(m)}');
         final OtaMessage? msg = parseFrame(m);
         if (msg != null) {
           _queue.add(msg);
@@ -94,6 +105,17 @@ class OtaLink {
         _wake();
       },
     );
+  }
+
+  /// Raw traffic tap for diagnosing a device on the bench.
+  static void Function(String line)? trace;
+
+  static String _hex(List<int> b) {
+    final String h = b
+        .take(24)
+        .map((int x) => x.toRadixString(16).padLeft(2, '0'))
+        .join(' ');
+    return b.length > 24 ? '$h … (${b.length} bytes)' : h;
   }
 
   final MidiConnection _conn;
@@ -129,7 +151,10 @@ class OtaLink {
     return _queue.removeFirst();
   }
 
-  Future<void> send(Uint8List sysex) => _conn.send(sysex);
+  Future<void> send(Uint8List sysex) {
+    trace?.call('tx ${_hex(sysex)}');
+    return _conn.send(sysex);
+  }
 
   Future<Uint8List?> query(int command, Duration timeout) async {
     _queue.clear();
@@ -257,6 +282,11 @@ class PedalUpdater {
         'The package carries an unknown update loader; refusing to use it.',
       if (pedal.family != pkg.productFamily)
         'The pedal is a "${pedal.family}" but the package is for "${pkg.productFamily}".',
+      // Measured on a Pocket AMP 1.05: after reading the package it stops
+      // asking for data instead of installing the version it already runs.
+      if (!pedal.inLoader && pedal.identity == pkg.product)
+        'The pedal already runs version ${pkg.version}. It does not reinstall '
+            'the version it already has.',
     ];
   }
 
@@ -387,7 +417,10 @@ class PedalUpdater {
       }
       if (sinceLast.elapsed > idle) {
         throw UpdateException(
-          '${phase.name}: the pedal stopped asking for data.',
+          phase == UpdatePhase.loader && total < 64 * 1024
+              ? 'The pedal read the package and declined it. This happens '
+                    'when it already runs this version. Nothing was written.'
+              : '${phase.name}: the pedal stopped asking for data.',
         );
       }
       final OtaMessage? m = await link.read(const Duration(milliseconds: 250));

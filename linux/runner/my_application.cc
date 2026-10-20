@@ -14,6 +14,39 @@ struct _MyApplication {
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
+// GTK 3 does not follow GNOME's dark style by itself, which leaves a light
+// title bar around the dark app. Ask for the dark variant when the desktop
+// prefers it.
+static void follow_system_color_scheme() {
+  GSettingsSchemaSource* source = g_settings_schema_source_get_default();
+  if (source == nullptr) {
+    return;
+  }
+  g_autoptr(GSettingsSchema) schema = g_settings_schema_source_lookup(
+      source, "org.gnome.desktop.interface", TRUE);
+  if (schema == nullptr || !g_settings_schema_has_key(schema, "color-scheme")) {
+    return;
+  }
+  g_autoptr(GSettings) settings = g_settings_new("org.gnome.desktop.interface");
+  g_autofree gchar* scheme = g_settings_get_string(settings, "color-scheme");
+  if (g_strcmp0(scheme, "prefer-dark") == 0) {
+    g_object_set(gtk_settings_get_default(),
+                 "gtk-application-prefer-dark-theme", TRUE, nullptr);
+  }
+}
+
+// The icon is installed next to the Flutter assets, in <bundle>/data.
+static void set_window_icon(GtkWindow* window) {
+  g_autofree gchar* exe = g_file_read_link("/proc/self/exe", nullptr);
+  if (exe == nullptr) {
+    return;
+  }
+  g_autofree gchar* dir = g_path_get_dirname(exe);
+  g_autofree gchar* icon =
+      g_build_filename(dir, "data", "app_icon.png", nullptr);
+  gtk_window_set_icon_from_file(window, icon, nullptr);
+}
+
 // Called when first Flutter frame received.
 static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
@@ -22,8 +55,10 @@ static void first_frame_cb(MyApplication* self, FlView* view) {
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
+  follow_system_color_scheme();
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
+  set_window_icon(window);
 
   // Use a header bar when running in GNOME as this is the common style used
   // by applications and is the setup most users will be using (e.g. Ubuntu

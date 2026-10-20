@@ -194,6 +194,22 @@ void main() {
       );
     });
 
+    test('a pedal that declines in the loader phase says so', () async {
+      final FakePedal pedal = FakePedal(image: pkg.image, stallInLoader: true);
+      final PedalUpdater up = updater(pedal);
+      final DetectedPedal found = (await up.detect())!;
+      await expectLater(
+        up.update(pkg, found, (_) {}),
+        throwsA(
+          isA<UpdateException>().having(
+            (UpdateException e) => e.message,
+            'message',
+            contains('declined'),
+          ),
+        ),
+      );
+    });
+
     test(
       'a pedal that comes back on another version fails the update',
       () async {
@@ -219,6 +235,18 @@ void main() {
         throwsA(isA<UpdateException>()),
       );
       expect(pedal.arms, 0);
+    });
+
+    test('blockers refuse the version the pedal already runs', () {
+      final List<String> reasons = updater(FakePedal(image: pkg.image))
+          .blockers(
+            pkg,
+            const DetectedPedal(
+              MidiPortRef(id: 'x', name: 'Pocket AMP'),
+              'Pocket AMP_105',
+            ),
+          );
+      expect(reasons.single, contains('already runs version 1.05'));
     });
 
     test('blockers refuse a package for another product', () {

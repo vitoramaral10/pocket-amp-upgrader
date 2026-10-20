@@ -70,6 +70,7 @@ class FakePedal implements MidiBackend {
     this.newIdentity = 'Pocket AMP_105',
     this.chunk = 512,
     this.stallInFlash = false,
+    this.stallInLoader = false,
     this.rebootDelay = const Duration(milliseconds: 30),
   });
 
@@ -78,6 +79,10 @@ class FakePedal implements MidiBackend {
   final String newIdentity;
   final int chunk;
   final bool stallInFlash;
+
+  /// Reads the first blocks and goes quiet, like a Pocket AMP offered the
+  /// version it already runs.
+  final bool stallInLoader;
   final Duration rebootDelay;
 
   /// Other devices on the bus, which never answer.
@@ -128,6 +133,9 @@ class FakePedal implements MidiBackend {
     final Uint8List got = Uint8List(image.length);
     int seq = 0;
     for (int at = 0; at < image.length; at += chunk) {
+      if (stallInLoader && loaderPhase && at >= 3 * chunk) {
+        return;
+      }
       if (stallInFlash && !loaderPhase && at >= image.length ~/ 2) {
         return; // stop asking: the host must time out
       }
