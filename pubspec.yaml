@@ -1,0 +1,25 @@
+name: pocket_amp_upgrader
+description: "Cross-platform firmware updater for the M-VAVE Pocket AMP over USB-MIDI."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  crypto: ^3.0.7
+  ffi: ^2.2.0
+  file_selector: ^1.1.0
+  flutter:
+    sdk: flutter
+  flutter_midi_command: ^1.4.0
+  http: ^1.6.0
+  path_provider: ^2.1.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

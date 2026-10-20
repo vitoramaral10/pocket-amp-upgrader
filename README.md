@@ -1,0 +1,86 @@
+# Pocket AMP Upgrader
+
+Update the firmware of the **M-VAVE Pocket AMP** over USB from **Linux, Windows or macOS**, with the official firmware file from M-VAVE.
+
+M-VAVE's own updater runs only on Windows and, at the time of writing, its "POCKET AMP" bundle ships an older firmware than the one on the downloads page. This app sends the current `.fwsc` file from M-VAVE over plain USB-MIDI, so it needs no drivers.
+
+![Pocket AMP Upgrader](docs/screenshot.png)
+
+> **Community tool, not affiliated with M-VAVE. Use at your own risk.** A firmware update that is interrupted can leave the pedal unusable.
+
+## Download
+
+Get the build for your system from the [latest release](../../releases/latest):
+
+| System | File | How to run |
+| --- | --- | --- |
+| Windows 10/11 (x64) | `pocket-amp-upgrader-windows-x64.zip` | Unzip, run `pocket-amp-upgrader.exe`. If SmartScreen warns, choose *More info → Run anyway*. |
+| macOS 11+ | `pocket-amp-upgrader-macos.zip` | Unzip, then right-click *Pocket AMP Upgrader* → *Open* (the app is not signed). |
+| Linux (x64) | `pocket-amp-upgrader-linux-x64.tar.gz` | `tar xzf` it and run `pocket-amp-upgrader/pocket-amp-upgrader`. Needs GTK 3 and ALSA (`libasound2`). |
+
+## How to update
+
+1. **Back up your presets** with the M-VAVE app (or write them down). The V1.05 update was seen overwriting presets P01–P05 and P80 and resetting their EQ; the other presets, names and IRs stayed.
+2. Charge the pedal, connect it with a USB **data** cable and turn it on.
+3. Close the M-VAVE app and anything else that uses MIDI (DAWs, browser tabs with Web MIDI).
+4. Open Pocket AMP Upgrader. It detects the pedal and shows the installed version.
+5. Click **Download from M-VAVE** (fetches the official file from M-VAVE's server) or **Open .fwsc file…** if you already have it.
+6. Click **Update firmware**, confirm, and wait about two minutes. The pedal restarts twice: once into update mode, once into the new firmware.
+
+To check the installed version on the pedal itself, hold **Home** and press **>**.
+
+### If it stops halfway
+
+Do not unplug the pedal in a hurry. If the app says the pedal did not come back, reconnect it, open the app again and click **Detect pedal**. A pedal waiting in update mode shows up as *update mode*, and **Resume update** writes the firmware again from there.
+
+## Safety checks
+
+Before anything is written, the app:
+
+- validates the whole `.fwsc` package (header, directory and CRC of every entry, chip `AC791N`);
+- only accepts packages for the Pocket AMP, and only the update loader (`ota.bin`) whose SHA-256 is known (`ef1f2db8…`, the one in the official V1.05 package);
+- checks that the pedal on the USB port says it is a Pocket AMP before arming the transfer;
+- sends nothing but the identity query until you confirm the update.
+
+## Status
+
+| Platform | Detection | Full update |
+| --- | --- | --- |
+| Linux | tested with a real pedal | the same protocol and timings were used to update a real pedal from V1.03 to V1.05 with a Python prototype; this app's update path is covered by tests against a simulated pedal |
+| Windows | not yet tested on hardware | not yet tested on hardware |
+| macOS | not yet tested on hardware | not yet tested on hardware |
+
+Reports are very welcome: open an issue with the log from **Details → Copy for a bug report**.
+
+## Troubleshooting
+
+- **No pedal found.** Try another cable (many are charge-only) and another USB port. Make sure no other app has the MIDI port open. On Linux your user needs access to `/dev/snd/midi*` (usually the `audio` group or a desktop session).
+- **"Could not open MIDI output" on Windows.** Another app owns the port; Windows lets only one app open a MIDI device at a time.
+- **macOS says the app is damaged.** Run `xattr -dr com.apple.quarantine "Pocket AMP Upgrader.app"` once.
+
+## How it works
+
+The Pocket AMP runs on a JieLi AC791N, the same chip as the M-VAVE FM-1, and uses the same update loader. The protocol was learned from the browser updater that M-VAVE published in [FM1 Open](https://github.com/m-vave/fm1_open) (`sdk/WebUpdate.js`):
+
+- frames are SysEx `F0 <7-bit packed [00 59 cmd len_lo len_hi 00 payload ~sum]> F7`;
+- command `0x11` returns the identity (`Pocket AMP_105`, or `ota-Pocket AMP_103` in update mode);
+- the raw message `F0 22 24 35 7F F7` arms a transfer, after which the pedal requests blocks with command `0x30` (`[seq, address u32, size u24]`) and the app answers with the bytes of the package;
+- a request for address `0xE0000000` ends the loader phase and `0xF0000000` ends the flash phase; both are answered with `success\0`, and the pedal restarts.
+
+The USB-MIDI transport is native on each system: ALSA rawmidi on Linux, WinMM on Windows (each SysEx send waits for the driver to finish with the buffer) and CoreMIDI on macOS (through [flutter_midi_command](https://pub.dev/packages/flutter_midi_command)).
+
+## Building
+
+Requires Flutter 3.47 or newer.
+
+```bash
+flutter pub get
+flutter test
+flutter build linux     # or windows / macos, on that system
+```
+
+`flutter test test_hardware/` talks to a real pedal on Linux (identity query only). Set `POCKET_AMP_FWSC=/path/to/Pocket\ AMP.fwsc` to also run the tests against the official package.
+
+## License
+
+GPL-3.0-only. The update protocol follows M-VAVE's FM1 Open browser updater, which is GPL-3.0. M-VAVE, Pocket AMP and FM-1 are trademarks of their owners; the firmware belongs to M-VAVE and is not distributed with this app.
