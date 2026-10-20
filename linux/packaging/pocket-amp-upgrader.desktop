@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Pocket AMP Upgrader
+Comment=Update the M-VAVE Pocket AMP firmware over USB
+Exec=pocket-amp-upgrader
+Icon=pocket-amp-upgrader
+Categories=AudioVideo;Audio;Utility;
+Terminal=false

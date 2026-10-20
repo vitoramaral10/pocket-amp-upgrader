@@ -64,6 +64,17 @@ jobs:
         run: |
           mv build/linux/x64/release/bundle pocket-amp-upgrader
           tar czf ${{ matrix.artifact }} pocket-amp-upgrader
+          curl -sfL -o appimagetool https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          linux/packaging/build-appimage.sh pocket-amp-upgrader ./appimagetool Pocket_AMP_Upgrader-x86_64.AppImage
+
+      - name: Upload AppImage
+        if: matrix.target == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pocket_AMP_Upgrader-x86_64.AppImage
+          path: Pocket_AMP_Upgrader-x86_64.AppImage
+          if-no-files-found: error
 
       - name: Package (Windows)
         if: matrix.target == 'windows'
